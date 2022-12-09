@@ -41,6 +41,24 @@ class Box:
     
     return self.price < other.price
 
+  def __le__(self, other: 'Box'):
+    if other == None:
+      return False
+    
+    return self.price <= other.price
+
+  def __ge__(self, other: 'Box'):
+    if other == None:
+      return False
+    
+    return self.price >= other.price
+  
+  def __mul__(self, other: 'Box'):
+    if isinstance(other, int):
+      return Box(self.price*other, self.direction, self.box_size)
+    
+    return Box(self.price*other.price, direction=self.direction, box_size=self.box_size)
+
   def next(self) -> 'Box':
     if self.direction == Direction.down and self.price == 0:
       raw_price = 0.0

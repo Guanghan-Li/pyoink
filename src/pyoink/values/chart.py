@@ -27,12 +27,10 @@ class Chart:
       self.columns[0].addBox(box2)
       return
     box = Box(raw_price, self.last_direction, self.box_size)
-    opposite_box = Box(raw_price, self.last_direction.opposite())
+    opposite_box = Box(raw_price, direction=self.last_direction.opposite(), box_size=self.box_size)
     distance = opposite_box.distance(self.last_box)
     if distance >= self.reversal:
       new_column = Column(self.last_direction.opposite(), self.box_size, boxes=[])
-      ob = Box(self.last_box.prev().price, self.last_direction.opposite(), self.box_size)
-      new_column.addBox(ob)
       new_column.addBox(opposite_box)
       self.columns.append(new_column)
     else:
