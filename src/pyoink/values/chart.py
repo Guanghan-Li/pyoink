@@ -1,4 +1,5 @@
 from pyoink.values.column import Box, Column, Direction
+from pyoink.values.trend import Trend
 
 class Chart:
   def __init__(self, symbol: str, box_size: float, reversal: int):
@@ -6,6 +7,7 @@ class Chart:
     self.box_size = box_size
     self.reversal = reversal
     self.columns: list[Column] = [Column(Direction.down, self.box_size)]
+    self.trends = []
 
   @staticmethod
   def between(price, num1, num2):
@@ -72,6 +74,11 @@ class Chart:
       self.addPrice(price)
     
     return self
+
+  def generateTrends(self):
+    current_trend = Trend([0], [], Direction.up)
+    for index, col in enumerate(self.columns):
+      pass
   
   def getGrid(self):
     width = len(self.columns)
