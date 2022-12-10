@@ -63,12 +63,6 @@ class Chart:
       new_column.addBox(opposite_box)
       self.columns.append(new_column)
       if len(new_column.boxes) < self.reversal:
-        print("Raw", raw_price)
-        print("Distance:", distance)
-        print("Opposite:", opposite_box)
-        print("BOX", box)
-        print("last", last_box)
-        print("Box amount", len(new_column.boxes))
         raise Exception("New Column too small")
     else:
       self.last_column.addBox(box)
