@@ -63,10 +63,9 @@ class Column:
   
   def addBox(self, box: Box):
     boxes = [box]
-    if self.direction == Direction.down and box > self.last_box:
-      return
-    elif self.direction == Direction.up and box < self.last_box:
-      return
+    for col_box in self.boxes:
+      if box == col_box:
+        return
 
     if self.amount > 0:
       boxes += self._getMiddleBoxes(box)
@@ -112,4 +111,5 @@ class Column:
     if self.boxInColumn(current_box):
       return []
   
-    return self.getRange(current_box, self.boxes[-1])
+    r = self.getRange(current_box, self.boxes[-1])
+    return r
