@@ -7,7 +7,7 @@ class Chart:
     self.box_size = box_size
     self.reversal = reversal
     self.columns: list[Column] = [Column(Direction.down, self.box_size)]
-    self.trends = []
+    self.trends: list[Trend] = []
 
   @staticmethod
   def between(price, num1, num2):
@@ -75,11 +75,108 @@ class Chart:
     
     return self
 
-  def generateTrends(self):
-    current_trend = Trend([0], [], Direction.up)
-    for index, col in enumerate(self.columns):
-      pass
+  def findHighestColumn(self, indexes) -> int:
+    columns = []
+
+    if indexes == [0]:
+      indexes = [0,1]
+
+    for index in indexes:
+      col = self.columns[index]
+      if col.direction == Direction.down:
+        continue
+
+      columns.append((index, col))
+    
+    if not columns:
+      raise Exception("ERROR -> findHighestColumn")
+      return None
+
+    columns.sort(key=lambda data: data[1].highest_box.price)
+    return columns[-1][0]
+
+
+  def findLowestColumn(self, indexes) -> int:
+    columns = []
+
+    for index in indexes:
+      col = self.columns[index]
+      if col.direction == Direction.up:
+        continue
+
+      columns.append((index, col))
   
+    if not columns:
+      raise Exception("ERROR -> findLowestColumn")
+      return None
+
+    columns.sort(key=lambda data: data[1].lowest_box.price)
+    return columns[0][0]
+
+  def getIncFunction(self, direction: Direction):
+    if direction == Direction.up:
+      return self.findHighestColumn
+    elif direction == Direction.down:
+      return self.findLowestColumn
+
+  def canChangeTrend(self, direction: Direction, current_column: Column, next_box: Box) -> bool:
+    if direction == Direction.up:
+      return current_column.lowest_box <= next_box
+    else:
+      return current_column.highest_box >= next_box
+
+
+  def switchTrend(self, current_trend: Trend) -> Trend:
+    findStart = self.getIncFunction(current_trend.direction)
+    start = findStart(current_trend.columns)
+    if start is None:
+      raise Exception("THIS FAILED")
+
+    column = self.columns[start]
+    if current_trend.direction == Direction.up:
+      start_box = column.highest_box.next()
+    else:
+      start_box = column.lowest_box.next()
+    new_trend = Trend([start,start+1], [start_box], current_trend.direction.opposite())
+    return new_trend
+
+  def incrementTrend(self, current_trend: Trend, data: tuple[Column, int]):
+    current_column, index = data
+    next_trend_box = self.getTrendColumnBox(current_trend.direction, current_trend.boxes[-1])
+    can_change = self.canChangeTrend(current_trend.direction, current_column, next_trend_box)
+    if can_change:
+      current_trend = self.switchTrend(current_trend)
+      return current_trend, True
+    else:
+      current_trend.boxes.append(next_trend_box)
+      current_trend.columns.append(index)
+      return current_trend, False
+
+  def generateTrends(self):
+    trends = []
+    start = 0
+    start_box = self.columns[0].lowest_box.next()
+
+    current_trend = Trend([start], [start_box], Direction.up)
+    is_end = False
+    while not is_end:
+      for index in range(start+1, len(self.columns)+1):
+        if index == len(self.columns):
+          is_end = True
+          break
+
+        col: Column = self.columns[index]
+
+        old_trend = current_trend
+        current_trend, is_change = self.incrementTrend(current_trend, (col, index))
+        if is_change:
+          trends.append(old_trend)
+          start = current_trend.columns[0]
+          break
+    trends.append(current_trend)
+    self.trends = trends
+    return trends
+
   def getGrid(self):
     width = len(self.columns)
     highest_box: Box = Box(0.0, direction=Direction.down)
@@ -91,7 +188,7 @@ class Chart:
       if col.highest_box > highest_box:
         highest_box = col.highest_box
 
-    height = highest_box.distance(lowest_box) + 1
+    height = highest_box.distance(lowest_box) + 4
 
     grid = []
     for i in range(height):
@@ -102,9 +199,34 @@ class Chart:
 
       for box in col.boxes:
         y = highest_box.distance(box)
-        grid[y][x] = char
+        grid[y+1][x] = char
+      
+      for t in self.trends:
+        dir_char = (u'\u27CB', u'\u27CD')[t.direction == Direction.down]
+        box = None
+        if x in t.columns:
+          box = t.getBoxForColumn(x)
+          if not box:
+            continue
+          offset = (1,-1)[t.direction == Direction.down]
+          y = highest_box.distance(box)
+          grid[y][x] = dir_char
+
     
     return grid
+
+  def getTrendColumnBox(self, direction: Direction, box: Box):
+    box_type = ("highest", "lowest")[direction == Direction.up]
+    if direction == Direction.down:
+      out =  box.dec()
+      action = "dec"
+    elif direction == Direction.up:
+      out = box.inc()
+      action = "inc"
+
+    #print("TREND", action, direction, box.direction, box.price, out.price)
+
+    return out
 
   def print(self):
     grid = self.getGrid()

@@ -1,6 +1,7 @@
 from unittest import *
 from src.pyoink.values.chart import Chart, Column, Box, Direction
 from test.data import simple_chart_data
+import json
 
 class TestChart(TestCase):
   def setUp(self) -> None:
@@ -44,3 +45,39 @@ class TestChart(TestCase):
     self.assertEqual(simple_chart.columns[0].amount, 5)
     self.assertEqual(simple_chart.columns[1].amount, 4)
     self.assertEqual(simple_chart.columns[2].amount, 3)
+  
+  def test_find_highest_column(self):
+    chart = Chart("TST", 1.0, 3)
+
+    simple_chart: Chart = chart.generate(simple_chart_data)
+    index = simple_chart.findHighestColumn([0,1,2])
+    self.assertEqual(index, 1)
+
+  def test_find_lowest_column(self):
+    chart = Chart("TST",1.0,3)
+    simple_chart: Chart = chart.generate(simple_chart_data)
+    index = simple_chart.findLowestColumn([0,1,2])
+    self.assertEqual(index,0)
+
+  def test_trends(self):
+    chart = Chart("TST",1.0,3)
+    simple_chart: Chart = chart.generate(simple_chart_data)
+    simple_chart.generateTrends()
+    self.assertEqual(len(simple_chart.trends), 2)
+  
+  def test_real(self):
+    with open("test/ABIO.json", 'r') as f:
+      dig_chart_data = json.load(f)
+    box_size = Chart.getBoxSize(dig_chart_data[0]['o'])
+    print(box_size)
+    chart = Chart("LINC", box_size, 3)
+    dig_chart: Chart = chart.generate(dig_chart_data)
+    dig_chart.generateTrends()
+    dig_chart.toHtml("linc.html")
+    
+    # trend = dig_chart.trends[0]
+    # box = chart.columns[0].lowest_box
+    # print(trend.boxes[0].distance(box))
+    # print(dig_chart.columns[-1].amount)
+    # print(dig_chart.trends[-1].direction)
+

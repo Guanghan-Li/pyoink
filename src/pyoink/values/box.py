@@ -79,6 +79,18 @@ class Box:
     
     return Box(raw_price, self.direction, box_size=self.box_size)
   
+  def inc(self) -> 'Box':
+    raw_price = self.price + self.box_size
+    return Box(raw_price, self.direction, box_size=self.box_size)
+
+  def dec(self) -> 'Box':
+    if self.price == 0:
+      raw_price = 0.0
+    else:
+      raw_price = self.price - self.box_size
+    
+    return Box(raw_price, self.direction, box_size=self.box_size)
+
   @staticmethod
   def round(value):
     return round(value, 2)
