@@ -1,5 +1,5 @@
 from unittest import *
-from src.pyoink.values.chart import Chart, Column, Box, Direction
+from src.pyoink.values.chart import Chart, Column, Box, Direction, Price, Prices
 from test.data import simple_chart_data
 import json
 
@@ -68,7 +68,9 @@ class TestChart(TestCase):
   def test_real(self):
     with open("test/ABIO.json", 'r') as f:
       dig_chart_data = json.load(f)
-    box_size = Chart.getBoxSize(dig_chart_data[0]['o'])
+    
+    prices = Prices.fromDict("ABIO", dig_chart_data)
+    box_size = Chart.getBoxSizeATR(prices)
     print(box_size)
     chart = Chart("LINC", box_size, 3)
     dig_chart: Chart = chart.generate(dig_chart_data)

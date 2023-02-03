@@ -1,5 +1,7 @@
 from pyoink.values.column import Box, Column, Direction
 from pyoink.values.trend import Trend
+from pyoink.values.prices import Prices, Price
+from pyoink.calculations.calculations import Calculations
 
 class Chart:
   def __init__(self, symbol: str, box_size: float, reversal: int):
@@ -12,6 +14,11 @@ class Chart:
   @staticmethod
   def between(price, num1, num2):
     return price >= num1 and price < num2
+
+  @staticmethod
+  def getBoxSizeATR(prices: Prices, length=14) -> float:
+    atr = Calculations.averageTrueRange(prices, length)
+    return round(atr, 2)
 
   @staticmethod
   def getBoxSize(price: float):
